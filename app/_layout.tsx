@@ -1,24 +1,36 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import { Stack } from "expo-router";
+import { SessionProvider, useSession } from "../ctx";
+import { SplashScreenController } from "../splash";
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+export default function Root() {
+  return (
+    <SessionProvider>
+      <SplashScreenController />
+      <RootNavigator />
+    </SessionProvider>
+  );
+}
 
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
-
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
+function RootNavigator() {
+  const { session } = useSession();
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <Stack>
+      {/* Authenticated area */}
+      <Stack.Protected guard={!!session}>
+        <Stack.Screen
+          name="(app)"
+          options={{ headerShown: false }} // 🚀 hides "(app)" from top bar
+        />
+      </Stack.Protected>
+
+      {/* Public login */}
+      <Stack.Protected guard={!session}>
+        <Stack.Screen
+          name="sign-in"
+          options={{ headerShown: false }} // 🚀 hides "sign-in" from top bar
+        />
+      </Stack.Protected>
+    </Stack>
   );
 }
